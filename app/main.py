@@ -1,17 +1,24 @@
-from fastapi import FastAPI,status,HTTPException,Response
+from fastapi import FastAPI,status,HTTPException,Response,Depends
 from fastapi import Body
 from pydantic import BaseModel
 from typing import Optional
 from random import randrange
+from sqlalchemy.orm import Session
 import psycopg2
 import time
 from psycopg2.extras import RealDictCursor
 import os
 from dotenv import load_dotenv
+from .import models
+from .database import engine,get_db
 
+models.Base.metadata.create_all(bind=engine)
 load_dotenv()
 
+
 app=FastAPI()
+
+
 
 class Post(BaseModel):
     title:str
@@ -41,6 +48,11 @@ my_posts=[{"title":"title of post 1", "content":"content of post 1","id":1},
 @app.get('/') #decorator makes api endpoint
 async def root():
     return {"message":"hello world"}
+
+@app.get('/sqlalchemy')
+def test_posts(db:Session=Depends(get_db)):
+        return db.query(models.Post).all()
+
 
 @app.get('/posts')
 async def get_posts():
