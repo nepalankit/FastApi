@@ -1,7 +1,7 @@
 from fastapi import FastAPI,status,HTTPException,Response,Depends
 from fastapi import Body
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict, List
 from random import randrange
 from sqlalchemy.orm import Session
 import psycopg2
@@ -11,6 +11,7 @@ import os
 from dotenv import load_dotenv
 from .import models
 from .database import engine,get_db
+from .schemas import PostBase,Post,PostCreate,UserCreate,UserOut
 
 models.Base.metadata.create_all(bind=engine)
 load_dotenv()
@@ -20,10 +21,6 @@ app=FastAPI()
 
 
 
-class Post(BaseModel):
-    title:str
-    content:str
-    published:bool=True #default value
     
     
 #connect to database
@@ -55,16 +52,16 @@ async def root():
 #         return {"data":posts}
 
 
-@app.get('/posts')
+@app.get('/posts',response_model=List[Post])
 async def get_posts(db:Session=Depends(get_db)):
     # cur.execute(""" SELECT * FROM posts""")
     # posts=cur.fetchall()
         posts= db.query(models.Post).all() #.all() runs sql query
-        return {"data":posts}
+        return posts
 
 
-@app.post('/posts',status_code=status.HTTP_201_CREATED)
-def create_posts(post:Post,db:Session=Depends(get_db)):
+@app.post('/posts',status_code=status.HTTP_201_CREATED,response_model=Post )
+def create_posts(post:PostCreate,db:Session=Depends(get_db)):
     # cur.execute("""INSERT INTO posts (title,content,published) VALUES (%s,%s,%s) RETURNING * """,(post.title,post.content,post.published))
     # new_post=cur.fetchone()
     # conn.commit()
@@ -76,7 +73,7 @@ def create_posts(post:Post,db:Session=Depends(get_db)):
     db.add(new_post)
     db.commit()
     db.refresh(new_post) # just like returning *
-    return{"data":new_post}
+    return new_post
 
 
 
@@ -88,7 +85,7 @@ def create_posts(post:Post,db:Session=Depends(get_db)):
 #         if p['id']==id:
 #             return p
 
-@app.get('/posts/{id}')
+@app.get('/posts/{id}',response_model=Post)
 def get_post(id:int,db:Session=Depends(get_db)):
     # cur.execute(""" SELECT * FROM posts where id=%s""",(str(id),))
     # single_post=cur.fetchone()
@@ -97,10 +94,10 @@ def get_post(id:int,db:Session=Depends(get_db)):
     if not single_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with id:{id} was not found")
-       
-        
-    return{"post_detail":single_post}
-    
+
+
+    return single_post
+
 
 #delete post
 
@@ -124,8 +121,8 @@ def delete_post(id:int,db:Session=Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     
-@app.put('/posts/{id}')
-def update_post(id:int,updated_post:Post,db:Session=Depends(get_db)):
+@app.put('/posts/{id}',response_model=PostCreate)
+def update_post(id:int,updated_post:PostCreate,db:Session=Depends(get_db)):
     # cur.execute("""UPDATE posts SET title=%s,content=%s,published=%s where id=%s RETURNING * """,(post.title,post.content,post.published,str(id)))
     # updated_post=cur.fetchone()
     # conn.commit()
@@ -137,4 +134,13 @@ def update_post(id:int,updated_post:Post,db:Session=Depends(get_db)):
     post_query.update(updated_post.dict(),synchronize_session=False)
     db.commit()
 
-    return {'data':post_query.first()}
+    return post_query.first()
+
+
+@app.post('/users',status_code=status.HTTP_201_CREATED,response_model=UserOut)
+def create_user(user:UserCreate,db:Session=Depends(get_db)):
+    new_user=models.User(**user.dict())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
