@@ -13,7 +13,7 @@ from ..import models,utils
 from ..database import engine,get_db
 from ..schemas import Post,PostCreate
 from fastapi.security import OAuth2PasswordRequestForm
-
+from .. import oauth2
 
 router=APIRouter(
     prefix="/posts",
@@ -30,7 +30,7 @@ async def get_posts(db:Session=Depends(get_db)):
 
 
 @router.post('/',status_code=status.HTTP_201_CREATED,response_model=Post )
-def create_posts(post:PostCreate,db:Session=Depends(get_db)):
+def create_posts(post:PostCreate,db:Session=Depends(get_db),user_id:int=Depends(oauth2.get_current_user)):
     # cur.execute("""INSERT INTO posts (title,content,published) VALUES (%s,%s,%s) RETURNING * """,(post.title,post.content,post.published))
     # new_post=cur.fetchone()
     # conn.commit()
