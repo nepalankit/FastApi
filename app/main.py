@@ -1,22 +1,24 @@
-from fastapi import FastAPI,status,HTTPException,Response,Depends
+from fastapi import FastAPI
 from fastapi import Body
+from pydantic import BaseModel
 from typing import Optional, Dict, List
 from random import randrange
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 import psycopg2
 import time
 from psycopg2.extras import RealDictCursor
 import os
 from dotenv import load_dotenv
-from .import models,utils
+from .import models
 from .database import engine,get_db
-
-from .routers import post,user,auth
-
-
+from .schemas import PostBase,Post,PostCreate,UserCreate,UserOut
+from .routers import post, user, auth
 
 
 
+#hasing algorithm
+pwd_context=CryptContext(schemes=['bcrypt'],deprecated='auto')
 
 
 
@@ -25,6 +27,11 @@ load_dotenv()
 
 
 app=FastAPI()
+
+# Include routers
+app.include_router(auth.router)
+app.include_router(post.router)
+app.include_router(user.router)
 
 
 
@@ -45,10 +52,6 @@ while True:
         time.sleep(2)
     
     
-app.include_router(post.router)
-app.include_router(user.router)
-app.include_router(auth.router)
-
 
 @app.get('/') #decorator makes api endpoint
 async def root():
@@ -58,7 +61,5 @@ async def root():
 # def test_posts(db:Session=Depends(get_db)):
 #         posts= db.query(models.Post).all() #.all() runs sql query
 #         return {"data":posts}
-
-
 
 

@@ -8,7 +8,7 @@ router =APIRouter(
 )
 
 
-@router.post('/login')
+@router.post('/login',response_model=schemas.Token)
 def login(user_credential:OAuth2PasswordRequestForm=Depends(),db: Session = Depends(database.get_db)):
     #oauth2passwordrequestform has username and password fields
     #username is email in our case

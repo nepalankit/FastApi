@@ -15,6 +15,7 @@ class PostCreate(PostBase):
 class Post(PostBase):
     id:int
     created_at:datetime
+    owner_id:int
     class Config: #tells pydantic to read data even if it is not a dict, i.e. ORM model
         from_attributes=True
 
