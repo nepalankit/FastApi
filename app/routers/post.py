@@ -25,7 +25,8 @@ router=APIRouter(
 async def get_posts(db:Session=Depends(get_db),current_user:int=Depends(oauth2.get_current_user)):
     # cur.execute(""" SELECT * FROM posts""")
     # posts=cur.fetchall()
-        posts= db.query(models.Post).all() #.all() runs sql query
+        #  SEE ONLY YOUR POSTS. posts= db.query(models.Post).filter(models.Post.owner_id==current_user.id).all() #.all() runs sql query
+        posts=db.query(models.Post).all()
         return posts
 
 
@@ -85,12 +86,17 @@ def delete_post(id:int,db:Session=Depends(get_db),current_user:int=Depends(oauth
     # cur.execute("""DELETE FROM posts WHERE id=%s RETURNING *""",(str(id),))
     # deleted_post=cur.fetchone()
     # conn.commit()
-    posts=db.query(models.Post).filter(models.Post.id==id)
+    post_query=db.query(models.Post).filter(models.Post.id==id)
+    post=post_query.first()
     
-    if posts.first()==None:
+    if post==None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id:{id} does not exist")
     
-    posts.delete(synchronize_session=False)
+    
+    if post.owner_id !=current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Not authorized to perform requested action")
+    
+    post_query.delete(synchronize_session=False)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -101,9 +107,14 @@ def update_post(id:int,updated_post:PostCreate,db:Session=Depends(get_db),curren
     # updated_post=cur.fetchone()
     # conn.commit()
     post_query=db.query(models.Post).filter(models.Post.id==id)
+    post=post_query.first()
 
-    if post_query.first()==None:
+    if post==None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id:{id} does not exist")
+    
+        
+    if post.owner_id !=current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Not authorized to perform requested action")
     
     post_query.update(updated_post.dict(),synchronize_session=False)
     db.commit()

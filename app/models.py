@@ -13,6 +13,7 @@ class Post(Base):
     published=Column(Boolean,server_default='TRUE',nullable=False)
     created_at=Column(TIMESTAMP(timezone=True),nullable=False,server_default=text('now()'))
     owner_id=Column(Integer,ForeignKey("users.id",ondelete="CASCADE"),nullable=False) #cascade means if user is deleted all his posts will be deleted
+    owner=relationship("User") #to get user info from post
     
 
     
