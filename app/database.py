@@ -21,3 +21,18 @@ def get_db(): #make a session to the database and close it once we are done
         yield db
     finally:
         db.close()
+        
+    
+#connect to database
+# while True:
+#     try:
+#         conn=psycopg2.connect(host=os.getenv('DATABASE_HOST'),database=os.getenv('DATABASE_NAME'),
+#                             user=os.getenv('DATABASE_USER'),password=os.getenv('DATABASE_PASSWORD'),cursor_factory=RealDictCursor)
+#         cur=conn.cursor()
+#         print("Database connection was successful")
+#         break
+
+#     except Exception as error:
+#         print("Connecting to database failed")
+#         print("Error:",error)
+#         time.sleep(2)

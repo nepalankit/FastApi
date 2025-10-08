@@ -1,19 +1,9 @@
 from fastapi import FastAPI
-from fastapi import Body
-from pydantic import BaseModel
-from typing import Optional, Dict, List
-from random import randrange
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
-import psycopg2
-import time
-from psycopg2.extras import RealDictCursor
-import os
 from dotenv import load_dotenv
 from .import models
-from .database import engine,get_db
-from .schemas import PostBase,Post,PostCreate,UserCreate,UserOut
-from .routers import post, user, auth
+from .database import engine
+from .routers import post, user, auth,like
 
 
 
@@ -31,27 +21,9 @@ app=FastAPI()
 # Include routers
 app.include_router(auth.router)
 app.include_router(post.router)
-app.include_router(user.router)
-
-
-
-    
-    
-#connect to database
-while True:
-    try:
-        conn=psycopg2.connect(host=os.getenv('DATABASE_HOST'),database=os.getenv('DATABASE_NAME'),
-                            user=os.getenv('DATABASE_USER'),password=os.getenv('DATABASE_PASSWORD'),cursor_factory=RealDictCursor)
-        cur=conn.cursor()
-        print("Database connection was successful")
-        break
-
-    except Exception as error:
-        print("Connecting to database failed")
-        print("Error:",error)
-        time.sleep(2)
-    
-    
+app.include_router(post.router)
+ 
+app.include_router(like.router)
 
 @app.get('/') #decorator makes api endpoint
 async def root():
