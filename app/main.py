@@ -6,6 +6,8 @@ from .database import engine
 from .routers import post, user, auth,like
 from fastapi.middleware.cors import CORSMiddleware
 
+from alembic import command
+from alembic.config import Config
 
 #hasing algorithm
 pwd_context=CryptContext(schemes=['bcrypt'],deprecated='auto')
@@ -27,6 +29,15 @@ app.add_middleware(
     allow_headers=["*"], #allow all headers
 )
 
+
+@app.on_event("startup")
+def run_migrations():
+    try:
+        alembic_cfg = Config("alembic.ini")
+        command.upgrade(alembic_cfg, "head")
+        print(" Migrations applied.")
+    except Exception as e:
+        print(f"Migration error: {e}")
 # Include routers
 app.include_router(auth.router)
 app.include_router(post.router)
