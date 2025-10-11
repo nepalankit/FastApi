@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from .import models
 from .database import engine
 from .routers import post, user, auth,like
-
+from fastapi.middleware.cors import CORSMiddleware
 
 
 #hasing algorithm
@@ -17,6 +17,15 @@ load_dotenv()
 
 
 app=FastAPI()
+origins=["*"] #allow all origins
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins, #allow all origins
+    allow_credentials=True,
+    allow_methods=["*"], #allow all methods
+    allow_headers=["*"], #allow all headers
+)
 
 # Include routers
 app.include_router(auth.router)
