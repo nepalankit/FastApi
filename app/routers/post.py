@@ -3,7 +3,8 @@ from fastapi import Body
 from pydantic import BaseModel
 from typing import Optional, Dict, List
 from random import randrange
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func
 import psycopg2
 import time
 from psycopg2.extras import RealDictCursor
@@ -11,7 +12,7 @@ import os
 from dotenv import load_dotenv
 from ..import models,utils
 from ..database import engine,get_db
-from ..schemas import Post,PostCreate
+from ..schemas import Post,PostCreate,PostOut
 from fastapi.security import OAuth2PasswordRequestForm
 from .. import oauth2
 
@@ -21,12 +22,12 @@ router=APIRouter(
 )
 
 
-@router.get('/',response_model=List[Post])
+@router.get('/',response_model=List[PostOut])
 async def get_posts(db:Session=Depends(get_db),current_user:int=Depends(oauth2.get_current_user),limit:int=10,skip:int=0,search:Optional[str]=""):
     # cur.execute(""" SELECT * FROM posts""")
     # posts=cur.fetchall()
         #  SEE ONLY YOUR POSTS. posts= db.query(models.Post).filter(models.Post.owner_id==current_user.id).all() #.all() runs sql query
-        posts=db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+        posts=db.query(models.Post,func.count(models.Like.post_id).label("Likes")).join(models.Like,models.Like.post_id==models.Post.id,isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
         return posts
 
 
@@ -39,15 +40,10 @@ def create_posts(post:PostCreate,db:Session=Depends(get_db),current_user:int=Dep
    
     # new_post=models.Post(title=post.title,content=post.content,published=post.published)
      #convereting this line to dictionary is really handy.Does the same thing as above
-    #
-    print("Incoming post data:", post)
-    print("Current user:", current_user.id)
 
     new_post=models.Post(owner_id=current_user.id,**post.dict())
     db.add(new_post)
     db.commit()
-    db.refresh(new_post) # just like returning *
-    return new_post
 
 
 
@@ -59,13 +55,14 @@ def create_posts(post:PostCreate,db:Session=Depends(get_db),current_user:int=Dep
 #         if p['id']==id:
 #             return p
 
-@router.get('/{id}',response_model=Post)
+@router.get('/{id}',response_model=PostOut)
 def get_post(id:int,db:Session=Depends(get_db),current_user:int=Depends(oauth2.get_current_user)):
     # cur.execute(""" SELECT * FROM posts where id=%s""",(str(id),))
     # single_post=cur.fetchone()
     # print(single_post)
     
-    single_post=db.query(models.Post).filter(models.Post.id==id).first()
+    # single_post=db.query(models.Post).filter(models.Post.id==id).first()
+    single_post=db.query(models.Post,func.count(models.Like.post_id).label("Likes")).join(models.Like,models.Like.post_id==models.Post.id,isouter=True).group_by(models.Post.id).filter(models.Post.id==id).first()
     if not single_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with id:{id} was not found")

@@ -26,6 +26,13 @@ class Post(PostBase):
     owner:UserOut
     class Config: #tells pydantic to read data even if it is not a dict, i.e. ORM model
         from_attributes=True
+        
+
+class PostOut(BaseModel):
+    Post:Post
+    Likes:int
+    class Config:
+        from_attributes=True
 
 
 class UserCreate(BaseModel):
@@ -51,3 +58,5 @@ class TokenData(BaseModel):
 class Like(BaseModel):
      post_id:int
      dir:int=Field(ge=0,le=1)
+     
+     

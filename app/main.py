@@ -11,8 +11,8 @@ from .routers import post, user, auth,like
 pwd_context=CryptContext(schemes=['bcrypt'],deprecated='auto')
 
 
-
-models.Base.metadata.create_all(bind=engine)
+#we have alembic now we dont need this to generate tables.
+# models.Base.metadata.create_all(bind=engine)
 load_dotenv()
 
 
