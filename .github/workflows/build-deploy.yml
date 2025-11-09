@@ -4,6 +4,19 @@ on: [push, pull_request]
 
 jobs:
   job1:
+    environment:
+      name: testing
+    env:
+      DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+      DATABASE_NAME: ${{secrets.DATABASE_NAME }}
+      DATABASE_USER: ${{secrets.DATABASE_USER }}
+      DATABASE_PASSWORD: ${{secrets.DATABASE_PASSWORD }}
+      DATABASE_PORT: ${{secrets.DATABASE_PORT }}
+      DATABASE_CONNECTION_URI: ${{secrets.DATABASE_CONNECTION_URI }}
+      DATABASE_SECRET_KEY: ${{secrets.DATABASE_SECRET_KEY }}
+      DATABASE_ALGORITHM: ${{secrets.DATABASE_ALGORITHM }}
+      DATABASE_ACCESS_TOKEN_EXPIRE_MINUTES: ${{secrets.DATABASE_ACCESS_TOKEN_EXPIRE_MINUTES }}
+
     runs-on: ubuntu-latest
     steps:
       - name: pulling git repo
@@ -11,3 +24,16 @@ jobs:
 
       - name: say hello
         run: echo "hello world"
+      - name: Install python version 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - name: update pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Tests
+        run: pip install pytest
+          pytest
