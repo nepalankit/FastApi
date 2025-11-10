@@ -6,7 +6,6 @@ jobs:
   job1:
     environment:
       name: testing
-
     runs-on: ubuntu-latest
 
     env:
