@@ -46,7 +46,7 @@ app.include_router(like.router)
 
 @app.get('/') #decorator makes api endpoint
 async def root():
-    return {"message":"hello world"}
+    return {"message":"hello world from vm"}
 
 # @app.get('/sqlalchemy')
 # def test_posts(db:Session=Depends(get_db)):
