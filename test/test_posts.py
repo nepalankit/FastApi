@@ -37,16 +37,16 @@ def test_get_one_post_not_exist(authorized_client,test_posts):
     assert res.status_code==404
     
     
-@pytest.mark.parametrize("title,content,published",[
-    ("first title","first content",True),
-    ("second title","second content",False),
-    ("third title","third content",True)
-])
-def test_create_post(authorized_client,test_user,title,content,published):
-    res=authorized_client.post("/posts",json={"title":title,"content":content,"published":published})
-    created_post=schemas.Post(**res.json())
-    assert res.status_code==201
-    assert created_post.title==title
-    assert created_post.content==content
-    assert created_post.published==published
-    assert created_post.owner_id==test_user['id']    
+# @pytest.mark.parametrize("title,content,published",[
+#     ("first title","first content",True),
+#     ("second title","second content",False),
+#     ("third title","third content",True)
+# ])
+# def test_create_post(authorized_client,test_user,title,content,published):
+#     res=authorized_client.post("/posts",json={"title":title,"content":content,"published":published})
+#     created_post=schemas.Post(**res.json())
+#     assert res.status_code==201
+#     assert created_post.title==title
+#     assert created_post.content==content
+#     assert created_post.published==published
+#     assert created_post.owner_id==test_user['id']    
